@@ -12,8 +12,6 @@ API REST bancaria construida con **Spring Boot** sobre una arquitectura en capas
 
 Incluye integración con **GitHub Actions**, **SonarCloud** (calidad), **JaCoCo** (cobertura), **Docker Hub** (imagen), **Render** (despliegue en la nube) y **Snyk** (seguridad).
 
-> 📄 El paso a paso del laboratorio se encuentra en [INFORME-LAB2.md](INFORME-LAB2.md).
-
 **Estudiante:** Mateo Vargas Tirado · **Asignatura:** Arquitectura de Software · **UdeA** · 2026-2
 
 ---
@@ -36,6 +34,15 @@ Swagger UI: [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagge
 ```shell
 ./mvnw clean install
 ```
+Las pruebas usan una base de datos H2 en memoria (`src/test/resources/application.properties`), por lo que **no requieren MySQL**.
+
+### Variables de entorno
+| Variable | Descripción | Valor por defecto |
+|---|---|---|
+| `PORT` | Puerto HTTP | `8080` |
+| `APP_DB_URL` | URL JDBC de MySQL | `jdbc:mysql://localhost:3306/banco2026?...` |
+| `APP_DB_USER` / `APP_DB_PASSWORD` | Credenciales de la BD | `banco_user` / `user123` |
+| `USER_PASSWORD` / `ADMIN_PASSWORD` | Claves de los usuarios `user` y `admin` | `root` |
 
 ### Cómo obtener el reporte de cobertura
 ```shell

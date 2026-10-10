@@ -1,0 +1,33 @@
+# Build de Maven
+target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# Archivos empaquetados
+*.jar
+*.war
+*.ear
+*.class
+*.log
+
+# IDEs
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Variables de entorno / secretos
+.env
+*.env
+
+# Logs de crash de la JVM
+hs_err_pid*
+replay_pid*
+
+# doc
+/doc

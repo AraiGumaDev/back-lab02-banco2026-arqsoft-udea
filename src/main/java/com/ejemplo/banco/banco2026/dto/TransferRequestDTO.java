@@ -10,6 +10,7 @@ public class TransferRequestDTO {
     private String receiverAccountNumber;
     private Double amount;
     public TransferRequestDTO() {
+        // Constructor vacío requerido por Jackson para deserializar el JSON de la petición
     }
 
 }

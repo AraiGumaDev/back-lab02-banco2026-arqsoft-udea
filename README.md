@@ -1,6 +1,10 @@
 # Banco 2026 — API REST con CI/CD
 
 [![CI/CD Pipeline](https://github.com/AraiGumaDev/back-lab02-banco2026-arqsoft-udea/actions/workflows/build.yml/badge.svg)](https://github.com/AraiGumaDev/back-lab02-banco2026-arqsoft-udea/actions/workflows/build.yml)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=araigumadevprojects_lab02-banco2026-arqsoft-udea&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=araigumadevprojects_lab02-banco2026-arqsoft-udea)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=araigumadevprojects_lab02-banco2026-arqsoft-udea&metric=coverage)](https://sonarcloud.io/summary/new_code?id=araigumadevprojects_lab02-banco2026-arqsoft-udea)
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=araigumadevprojects_lab02-banco2026-arqsoft-udea&metric=bugs)](https://sonarcloud.io/summary/new_code?id=araigumadevprojects_lab02-banco2026-arqsoft-udea)
+[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=araigumadevprojects_lab02-banco2026-arqsoft-udea&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=araigumadevprojects_lab02-banco2026-arqsoft-udea)
 <!-- BADGES: se agregan a medida que se integra cada plataforma -->
 
 API REST bancaria construida con **Spring Boot** sobre una arquitectura en capas (Laboratorio 1), integrada en el Laboratorio 2 a un pipeline de **Integración y Despliegue Continuo (CI/CD)**.

@@ -31,6 +31,11 @@
 		<mapstruct.version>1.5.5.Final</mapstruct.version>
 		<lombok.version>1.18.30</lombok.version>
 		<lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
+		<jacoco.version>0.8.14</jacoco.version>
+		<argLine></argLine>
+		<sonar.projectKey>araigumadevprojects_lab02-banco2026-arqsoft-udea</sonar.projectKey>
+		<sonar.organization>araigumadevprojects</sonar.organization>
+		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -137,12 +142,33 @@
 				</configuration>
 			</plugin>
 
+			<!-- JaCoCo: medición de cobertura de código (reporte en target/site/jacoco) -->
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>${jacoco.version}</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>report</id>
+						<phase>test</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<configuration>
 					<useManifestOnlyJar>false</useManifestOnlyJar>
-					<argLine>-Djdk.net.URLClassPath.disableClassPathURLCheck=true</argLine>
+					<argLine>@{argLine} -Djdk.net.URLClassPath.disableClassPathURLCheck=true</argLine>
 				</configuration>
 			</plugin>
 		</plugins>

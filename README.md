@@ -1,5 +1,6 @@
 # Banco 2026 — API REST con CI/CD
 
+[![CI/CD Pipeline](https://github.com/AraiGumaDev/back-lab02-banco2026-arqsoft-udea/actions/workflows/build.yml/badge.svg)](https://github.com/AraiGumaDev/back-lab02-banco2026-arqsoft-udea/actions/workflows/build.yml)
 <!-- BADGES: se agregan a medida que se integra cada plataforma -->
 
 API REST bancaria construida con **Spring Boot** sobre una arquitectura en capas (Laboratorio 1), integrada en el Laboratorio 2 a un pipeline de **Integración y Despliegue Continuo (CI/CD)**.

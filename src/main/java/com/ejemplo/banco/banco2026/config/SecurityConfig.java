@@ -18,10 +18,15 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+    private static final String API_PATTERN = "/api/**";
+    private static final String ROLE_ADMIN = "ADMIN";
+    private static final String ROLE_USER = "USER";
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) {
         http
+                // CSRF deshabilitado de forma consciente: la API es REST, sin estado (STATELESS) y se autentica
+                // con HTTP Basic en cada petición; no usa cookies de sesión, que es el vector que explota CSRF.
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
@@ -35,12 +40,12 @@ public class SecurityConfig {
                         ).permitAll()
 
                         // 2. Operaciones de escritura (POST, PUT, DELETE) solo para ADMIN
-                        .requestMatchers(HttpMethod.POST, "/api/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, API_PATTERN).hasRole(ROLE_ADMIN)
+                        .requestMatchers(HttpMethod.PUT, API_PATTERN).hasRole(ROLE_ADMIN)
+                        .requestMatchers(HttpMethod.DELETE, API_PATTERN).hasRole(ROLE_ADMIN)
 
                         // 3. Operaciones de lectura (GET) para USER y ADMIN
-                        .requestMatchers(HttpMethod.GET, "/api/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, API_PATTERN).hasAnyRole(ROLE_USER, ROLE_ADMIN)
 
                         .anyRequest().authenticated()
                 )
@@ -60,13 +65,13 @@ public class SecurityConfig {
         UserDetails user = User.builder()
                 .username("user")
                 .password(passwordEncoder.encode(userPassword))
-                .roles("USER")
+                .roles(ROLE_USER)
                 .build();
 
         UserDetails admin = User.builder()
                 .username("admin")
                 .password(passwordEncoder.encode(adminPassword))
-                .roles("ADMIN")
+                .roles(ROLE_ADMIN)
                 .build();
 
         return new InMemoryUserDetailsManager(user, admin);

@@ -1,6 +1,6 @@
 package com.ejemplo.banco.banco2026.service;
 
-import com.ejemplo.banco.banco2026.DTO.CustomerDTO;
+import com.ejemplo.banco.banco2026.dto.CustomerDTO;
 import com.ejemplo.banco.banco2026.entity.Customer;
 import com.ejemplo.banco.banco2026.exception.ResourceNotFoundException;
 import com.ejemplo.banco.banco2026.mapper.CustomerMapper;

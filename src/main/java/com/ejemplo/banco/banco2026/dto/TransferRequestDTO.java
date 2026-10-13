@@ -1,4 +1,4 @@
-package com.ejemplo.banco.banco2026.DTO;
+package com.ejemplo.banco.banco2026.dto;
 
 import lombok.Getter;
 import lombok.Setter;

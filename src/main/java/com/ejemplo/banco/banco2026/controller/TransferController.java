@@ -1,6 +1,6 @@
 package com.ejemplo.banco.banco2026.controller;
 
-import com.ejemplo.banco.banco2026.DTO.TransactionDTO;
+import com.ejemplo.banco.banco2026.dto.TransactionDTO;
 import com.ejemplo.banco.banco2026.service.TransactionService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

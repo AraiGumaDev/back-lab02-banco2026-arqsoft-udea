@@ -1,6 +1,6 @@
 package com.ejemplo.banco.banco2026.mapper;
 
-import com.ejemplo.banco.banco2026.DTO.TransactionDTO;
+import com.ejemplo.banco.banco2026.dto.TransactionDTO;
 import com.ejemplo.banco.banco2026.entity.Transaction;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;

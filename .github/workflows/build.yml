@@ -64,3 +64,32 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
+
+  # Job de construcción del artefacto JAR
+  build:
+    name: Build
+    # Solo se ejecuta si el análisis de SonarCloud fue exitoso
+    needs: sonar
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Build with Maven
+        run: mvn -B package -DskipTests --file pom.xml
+
+      # Publica el JAR como artefacto del workflow para descargarlo o compartirlo con otros jobs
+      - name: Upload JAR
+        uses: actions/upload-artifact@v5
+        with:
+          name: banco2026-jar
+          path: target/banco2026.jar
+          if-no-files-found: error
+          retention-days: 7

@@ -130,3 +130,38 @@ jobs:
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/banco2026:latest
             ${{ secrets.DOCKER_USERNAME }}/banco2026:${{ github.sha }}
+
+  # Job de despliegue en Render (nube)
+  deploy:
+    name: Deploy to Render
+    # Solo se despliega si la imagen se publicó correctamente en Docker Hub
+    needs: docker
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: ${{ vars.RENDER_APP_URL }}
+    steps:
+      # El Deploy Hook le indica a Render que descargue la nueva imagen :latest y la despliegue
+      - name: Trigger Render deploy
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: curl -fsS -X POST "$RENDER_DEPLOY_HOOK_URL"
+
+      # Prueba de humo: espera a que la app responda en la nube (hasta 10 minutos)
+      - name: Smoke test
+        env:
+          APP_URL: ${{ vars.RENDER_APP_URL }}
+        run: |
+          sleep 60
+          for i in $(seq 1 18); do
+            code=$(curl -s -o /dev/null -w "%{http_code}" "$APP_URL/v3/api-docs" || true)
+            echo "Intento $i: /v3/api-docs -> HTTP $code"
+            if [ "$code" = "200" ]; then break; fi
+            sleep 30
+          done
+          test "$code" = "200"
+          # Sin credenciales la API debe responder 401 (seguridad activa)
+          auth=$(curl -s -o /dev/null -w "%{http_code}" "$APP_URL/api/customers")
+          echo "/api/customers sin credenciales -> HTTP $auth"
+          test "$auth" = "401"

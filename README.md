@@ -55,5 +55,12 @@ Las pruebas usan una base de datos H2 en memoria (`src/test/resources/applicatio
 ```
 El reporte de JaCoCo queda en `target/site/jacoco/index.html`.
 
+### Imagen Docker
+La imagen se publica automáticamente en Docker Hub con cada cambio en `main`: `<usuario-dockerhub>/banco2026`
+```shell
+docker pull <usuario-dockerhub>/banco2026:latest
+docker run -p 8080:8080 -e APP_DB_URL="jdbc:mysql://host.docker.internal:3306/banco2026" <usuario-dockerhub>/banco2026:latest
+```
+
 ### Despliegue en la nube
 _Pendiente._

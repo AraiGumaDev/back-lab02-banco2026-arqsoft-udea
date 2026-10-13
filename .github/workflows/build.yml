@@ -3,11 +3,13 @@ name: CI/CD Pipeline
 on:
 
   workflow_dispatch:
-  # Se ejecuta con cada push a la rama principal
+  # Se ejecuta con cada push a la rama principal (main) y a la rama de integración (dev).
+  # En dev solo corren tests, sonar y build; docker y deploy quedan restringidos a main.
   push:
     branches:
       - main
-  # Se ejecuta con cada pull request hacia la rama principal
+      - dev
+  # Se ejecuta con cada pull request hacia main (valida los cambios antes del merge)
   pull_request:
     branches:
       - main

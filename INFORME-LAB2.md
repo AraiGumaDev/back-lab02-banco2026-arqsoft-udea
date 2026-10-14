@@ -2,7 +2,7 @@
 
 **Estudiante:** Mateo Vargas Tirado  
 **Asignatura:** Arquitectura de Software  
-**Institución:** Universidad de Antioquia
+**Institución:** Universidad de Antioquia  
 **Semestre:** 2026-2  
 **Fecha:** 13 de octubre de 2026    
 **Repositorio:** [https://github.com/AraiGumaDev/back-lab02-banco2026-arqsoft-udea](https://github.com/AraiGumaDev/back-lab02-banco2026-arqsoft-udea)
@@ -13,7 +13,7 @@
 
 En el desarrollo de software moderno no basta con escribir código funcional: también es necesario garantizar que cada cambio se integre, pruebe, analice y despliegue de forma confiable y repetible. El enfoque **CI/CD** (Integración Continua, Entrega Continua y Despliegue Continuo) aborda este reto automatizando el ciclo de vida de la aplicación desde el *commit* hasta su ejecución en producción.
 
-El presente informe documenta la construcción de un pipeline CI/CD para el backend **Banco 2026** desarrollado en el Laboratorio 1 (API REST en Spring Boot con arquitectura en capas). Sobre este proyecto se integraron las plataformas **GitHub Actions** para la automatización del pipeline, **JaCoCo** y **SonarCloud** para la medición de cobertura y calidad del código, **Docker Hub** para la publicación de la imagen de contenedor, **Render** junto con **Aiven MySQL** para el despliegue en la nube, y **Snyk** para el análisis de vulnerabilidades. Además, se experimento la estrategia de ramificación **Trunk-Based Development** mediante *pull requests* hacia la rama principal.
+El presente informe documenta la construcción de un pipeline CI/CD para el backend **Banco 2026** desarrollado en el Laboratorio 1 (API REST en Spring Boot con arquitectura en capas). Sobre este proyecto se integraron las plataformas **GitHub Actions** para la automatización del pipeline, **JaCoCo** y **SonarCloud** para la medición de cobertura y calidad del código, **Docker Hub** para la publicación de la imagen de contenedor, **Render** junto con **Aiven MySQL** para el despliegue en la nube, y **Snyk** para el análisis de vulnerabilidades. Además, se aplicó la estrategia de ramificación **Trunk-Based Development**, integrando los cambios a la rama principal mediante *pull requests*.
 
 ---
 
@@ -28,7 +28,7 @@ Implementar un pipeline de integración y despliegue continuo para el backend Ba
 * **Generar el artefacto:** Construir el JAR de la aplicación y publicarlo como artefacto del pipeline.
 * **Contenerizar la aplicación:** Crear una imagen Docker y publicarla automáticamente en Docker Hub.
 * **Desplegar en la nube:** Desplegar el contenedor en Render, conectado a una base de datos MySQL gestionada en Aiven.
-* **Aplicar Trunk-Based Development:** Trabajar con ramas de corta duración, *pull requests* y *merges* hacia `main`, validados por el pipeline.
+* **Aplicar Trunk-Based Development:** Integrar los cambios a `main` con frecuencia, mediante *pull requests* pequeños desde una rama de integración y validados por el pipeline.
 * **Analizar la seguridad de dependencias:** Escanear el proyecto con Snyk para identificar vulnerabilidades conocidas.
 
 ---
@@ -47,7 +47,8 @@ Implementar un pipeline de integración y despliegue continuo para el backend Ba
 | **Nube (cómputo)** | Render | Ejecución del contenedor como Web Service. |
 | **Nube (base de datos)** | Aiven for MySQL | Base de datos MySQL gestionada para el entorno desplegado. |
 | **Seguridad** | Snyk | Detección de vulnerabilidades en dependencias. |
-| **Pruebas de API** | Postman / Swagger UI | Verificación de los endpoints desplegados en la nube. |
+| **Pruebas de API** | Bruno / Swagger UI | Verificación de los endpoints desplegados en la nube. |
+| **Base de datos (cliente)** | DBeaver | Consulta directa de los datos persistidos en Aiven. |
 
 ---
 
@@ -84,8 +85,8 @@ Antes de construir el pipeline se corrigieron algunos aspectos de configuración
 
 Finalmente, se registraron los cambios y se subieron a la rama `main`:
 ```bash
-git add .gitignore .gitattributes README.md INFORME-LAB2.md doc/img/.gitkeep
-git commit -m "chore: preparar repositorio para el laboratorio 2 (CI/CD)"
+git add .gitignore .gitattributes README.md mvnw
+git commit -m "chore: Preparación del repositorio para el laboratorio 2 (CI/CD)"
 git push origin main
 ```
 
@@ -423,7 +424,7 @@ Se revisaron los 17 *issues* reportados, aplicando el criterio que propone la gu
 CSRF (*Cross-Site Request Forgery*) es un ataque en el que un sitio malicioso hace que el navegador de la víctima envíe una petición a otra aplicación, aprovechando que el navegador **adjunta automáticamente la cookie de sesión**. En esta API la protección CSRF se puede deshabilitar de forma segura porque:
 * La política de sesión es `STATELESS`: el servidor no crea sesiones ni emite cookies de sesión.
 * La autenticación es HTTP Basic: el cliente debe enviar explícitamente la cabecera `Authorization` en **cada** petición. Un sitio de terceros no puede forjar esa cabecera.
-* Es una API REST consumida por clientes programáticos (*frontend*, Postman), no un formulario HTML con sesión.
+* Es una API REST consumida por clientes programáticos (*frontend*, Bruno, Postman), no un formulario HTML con sesión.
 
 Activar CSRF obligaría a enviar un *token* CSRF en cada `POST/PUT/DELETE` sin aportar protección real en este escenario. Por eso se mantuvo la configuración, se documentó la decisión con un comentario en `SecurityConfig` y el *issue* se marcó en SonarCloud como **Accepted / Safe**, con esta justificación.
 
@@ -464,9 +465,11 @@ Tras los cambios, las 42 pruebas siguen pasando y la cobertura local se mantiene
 | Cobertura | 96,0 % | 96,0 % (código nuevo: **100 %**) |
 | Reliability | A (0 bugs) | **A** (0 bugs) |
 | Security | **D** (1 vulnerabilidad) | **A** (0 vulnerabilidades) |
-| Maintainability | A (16 code smells) | **A** (1 code smell) |
+| Maintainability | A (16 code smells) | **A** (1 code smell*) |
 | Duplicación | 0,0 % | 0,0 % |
 | Security Hotspots | 0 | 0 |
+
+\* El *code smell* restante (`java:S1186`, constructor vacío de `TransferRequestDTO`) correspondía a un cambio que no alcanzó a entrar en el *commit* de las correcciones; se incluyó en el siguiente.
 
 Se cumplieron todas las condiciones del Quality Gate *Sonar way*: calificaciones de confiabilidad, seguridad y mantenibilidad del código nuevo iguales a A, cobertura del código nuevo ≥ 80 % (se obtuvo 100 %) y duplicación por debajo del umbral.
 
@@ -474,7 +477,7 @@ Se cumplieron todas las condiciones del Quality Gate *Sonar way*: calificaciones
 
 #### 3.7. Insignias de SonarCloud
 
-Desde **Information → Badges** se copiaron al `README.md` las insignias de *Quality Gate Status* y *Coverage*.
+Desde **Information → Badges** se copiaron al `README.md` las insignias de *Quality Gate Status*, *Coverage*, *Bugs* y *Code Smells*.
 
 ![Badges en el README](doc/img/paso3-badges.png)
 
@@ -562,7 +565,7 @@ EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
 ```
 
-> **Nota:** Esta es la versión inicial del Dockerfile. En el Paso 8 se cambió la imagen base a `eclipse-temurin:17-jre-alpine`, para reducir las vulnerabilidades que reportó Snyk.
+> **Nota:** Esta es la versión inicial del Dockerfile. En el Paso 8 se cambió la imagen base a `eclipse-temurin:17-jre-alpine` y se agregó `RUN apk upgrade --no-cache`, para reducir las vulnerabilidades que reportó Snyk.
 
 * **`eclipse-temurin:17-jre-jammy`**: imagen base con solo el **JRE** 17 (sin compilador), que es más liviana y tiene menos superficie de ataque que una con JDK completo.
 * **Usuario `spring` sin privilegios**: el proceso no se ejecuta como `root` dentro del contenedor. Es una buena práctica de seguridad (si la aplicación se viera comprometida, el atacante no tendría privilegios de administrador en el contenedor) y es una de las recomendaciones que revisan herramientas como Snyk.
@@ -624,6 +627,8 @@ Se agregó un `.dockerignore` que excluye todo excepto `target/banco2026.jar`. A
 
 > **Diferencias con la guía:** La guía usa la acción de terceros `mr-smithers-excellent/docker-build-push@v6`. Aquí se usan las acciones **oficiales de Docker** (`docker/login-action`, `docker/setup-buildx-action`, `docker/build-push-action`), que tienen mantenimiento activo y son las que recomienda la documentación de GitHub. El nombre de la imagen se construye con `${{ secrets.DOCKER_USERNAME }}` para no exponer el usuario en el repositorio público. Como efecto secundario, GitHub enmascara ese valor como `***` en los logs de la ejecución.
 
+> **Nota:** En el Paso 8.3 c) estas tres acciones de Docker se fijaron a un SHA de commit completo, por una regla de seguridad de SonarCloud.
+
 #### 5.4. Ejecución y verificación
 
 Después del *push* a `main`, el pipeline completo quedó así: **tests → sonar → build → docker**.
@@ -642,6 +647,7 @@ docker run -p 8080:8080 \
   -e APP_DB_USER=banco_user -e APP_DB_PASSWORD=user123 \
   mateovargast/banco2026:latest
 ```
+
 ### Paso 6: Base de Datos en Aiven y Despliegue Continuo en Render
 
 Este paso completa el pipeline con la etapa de **Despliegue Continuo**: cada cambio que llega a `main` y supera todas las validaciones se publica automáticamente en la nube, sin intervención manual. Se usaron dos plataformas gratuitas:
@@ -652,18 +658,19 @@ Este paso completa el pipeline con la etapa de **Despliegue Continuo**: cada cam
 #### 6.1. Arquitectura de despliegue
 
 ```mermaid
-flowchart LR
+flowchart TB
     Dev[Desarrollador] -->|git push / merge| GH[GitHub<br/>repositorio]
-    GH --> GA[GitHub Actions]
-    subgraph Pipeline CI/CD
-        GA --> T[tests] --> S[sonar] --> B[build JAR] --> D[docker] --> R[deploy]
+    GH -->|dispara| CI
+    subgraph CI["Pipeline CI/CD en GitHub Actions"]
+        direction LR
+        T[tests] --> S[sonar] --> B[build JAR] --> D[docker] --> R[deploy]
     end
-    S -.análisis.-> SC[(SonarCloud)]
-    D -.push imagen.-> DH[(Docker Hub)]
-    R -.Deploy Hook.-> RENDER[Render<br/>Web Service]
+    CI -.sonar: análisis.-> SC[(SonarCloud)]
+    CI -.docker: push imagen.-> DH[(Docker Hub)]
+    CI -.deploy: Deploy Hook.-> RENDER[Render<br/>Web Service]
     DH -.pull :latest.-> RENDER
     RENDER -->|JDBC + SSL| AIVEN[(Aiven<br/>MySQL)]
-    Cliente[Cliente / Postman / Front] -->|HTTPS + Basic Auth| RENDER
+    Cliente[Cliente / Bruno / Front] -->|HTTPS + Basic Auth| RENDER
 ```
 
 #### 6.2. Base de datos MySQL en Aiven
@@ -693,7 +700,7 @@ spring.datasource.hikari.maximum-pool-size=${DB_POOL_SIZE:5}
 
 #### 6.4. Web Service en Render
 
-1. En [dashboard.render.com](https://dashboard.render.com) se eligió **New → Web Service → Existing Image** y se indicó la imagen `docker.io/<usuario-dockerhub>/banco2026:latest`.
+1. En [dashboard.render.com](https://dashboard.render.com) se eligió **New → Web Service → Existing Image** y se indicó la imagen `docker.io/mateovargast/banco2026:latest`.
 2. Se eligió la instancia **Free** y la región **Oregon (US West)**.
 3. En **Environment** se definieron las variables de entorno. Render las guarda cifradas, así que las credenciales nunca están en el código ni en la imagen:
 
@@ -705,7 +712,8 @@ spring.datasource.hikari.maximum-pool-size=${DB_POOL_SIZE:5}
 | `USER_PASSWORD` | *(contraseña del usuario `user`)* |
 | `ADMIN_PASSWORD` | *(contraseña del usuario `admin`)* |
 
-   No hace falta definir `PORT`: Render la inyecta automáticamente y la aplicación la lee gracias a `server.port=${PORT:8080}`.
+No hace falta definir `PORT`: Render la inyecta automáticamente y la aplicación la lee gracias a `server.port=${PORT:8080}`.
+
 4. En **Settings → Health Check Path** se configuró `/v3/api-docs`, un endpoint público. Render lo usa para saber cuándo la nueva versión está lista antes de enviarle tráfico.
 5. En **Settings → Deploy Hook** se copió la URL secreta del *hook* de despliegue.
 
@@ -869,7 +877,7 @@ Se consultó directamente la base de datos `defaultdb` de Aiven con DBeaver. La 
 
 > **Observaciones:**
 > * La primera petición después de un período de inactividad tardó varios segundos (≈ 8 s en la prueba 6), porque la instancia gratuita de Render se suspende tras 15 minutos sin tráfico y debe arrancar de nuevo (*cold start*). Las peticiones siguientes responden en milisegundos.
-> * La respuesta de `POST /api/transactions` no incluye el campo `timestamp`, aunque sí se guarda en la base de datos. `transferMoney` construye el DTO de respuesta manualmente y omite ese campo; el `@JsonInclude(NON_NULL)` de `TransactionDTO` lo oculta.
+> * La respuesta de `POST /api/transactions` no incluye el campo `timestamp`, aunque sí se guarda en la base de datos. `transferMoney` construye el DTO de respuesta manualmente y omite ese campo; el `@JsonInclude(NON_NULL)` de `TransactionDTO` lo oculta. Se corrigió en el Paso 7.3.
 
 #### 6.7. Problemas encontrados durante el despliegue
 
@@ -892,17 +900,37 @@ Para este proyecto se definió el siguiente esquema de dos ramas:
 | `dev` | Rama de integración del trabajo en curso. Recibe los *commits* del desarrollo diario. | tests → sonar → build (**sin** publicar imagen ni desplegar) |
 
 ```mermaid
+%%{init: {'gitGraph': {'mainBranchName': 'main', 'showCommitLabel': true, 'rotateCommitLabel': false}}}%%
 gitGraph
-    commit id: "ci: pipeline completo"
+    commit id: "CI/CD"
     branch dev
     checkout dev
-    commit id: "fix: validación de saldo"
-    commit id: "test: nuevas pruebas"
+    commit id: "fix"
+    commit id: "test"
+    commit id: "docs"
     checkout main
-    merge dev id: "PR #1" tag: "deploy Render"
+    merge dev id: "PR #1" tag: "deploy"
     checkout dev
-    commit id: "siguiente cambio..."
+    merge main id: "sync 1"
+    commit id: "deps"
+    commit id: "alpine"
+    commit id: "sha"
+    checkout main
+    merge dev id: "PR #2" tag: "deploy "
+    checkout dev
+    merge main id: "sync 2"
+    commit id: "apk"
+    checkout main
+    merge dev id: "PR #3" tag: "deploy  "
 ```
+
+*Historial real del repositorio (el detalle de cada commit está en la tabla siguiente): cada ciclo agrupa commits pequeños en `dev`, se integra a `main` con un pull request (que dispara el despliegue en Render) y luego `dev` se sincroniza con `main` antes del siguiente ciclo.*
+
+| Pull request | Contenido | Merge commit | Detalle |
+|---|---|---|---|
+| **#1** | Corrección de la validación de saldos, validación de montos, `timestamp` y rama `dev` en el pipeline | `4d20851` | Paso 7.3 – 7.7 |
+| **#2** | Parches de Tomcat, Hibernate y Jackson; imagen Alpine; acciones de Docker fijadas por SHA; badge de Snyk | `eb44da4` | Paso 8.3 – 8.4 |
+| **#3** | `apk upgrade` en el Dockerfile para los parches de Alpine | `10970e8` | Paso 8.4.1 |
 
 > **Sobre la rama `dev`:** En trunk-based "puro" las ramas de trabajo son de vida muy corta (horas o pocos días) y se eliminan tras el *merge*. Aquí se optó por una rama `dev` **permanente**, más cercana a un flujo de trabajo real de equipo. Para seguir los principios de trunk-based se mantienen tres reglas:
 > 1. `dev` se integra a `main` **frecuentemente**, con *pull requests* pequeños, en lugar de acumular cambios.
@@ -1205,9 +1233,9 @@ RUN apk upgrade --no-cache
 
 `apk upgrade` actualiza todos los paquetes instalados a la última versión disponible en los repositorios de Alpine 3.23, que incluye las versiones corregidas de `expat`, `sqlite`, `p11-kit`, `libpng` y `openssl`. `--no-cache` evita guardar el índice de paquetes dentro de la imagen, para que no crezca de tamaño. Como el pipeline reconstruye la imagen con cada *merge* a `main`, cada despliegue incorpora automáticamente los últimos parches de seguridad del sistema operativo.
 
-<!-- Completar con el resultado del escaneo de la imagen publicada (Snyk Container / Docker Scout) -->
+El cambio se integró con el **pull request #3** (`10970e8`). El pipeline completo terminó en verde y la nueva imagen se desplegó en Render sin inconvenientes: `/v3/api-docs` respondió `200` y `/api/customers` sin credenciales, `401`.
 
-![Escaneo de la imagen publicada en Docker Hub](doc/img/paso8-image-scan.png)
+> **Limitación de la medición:** El proyecto de Snyk importado desde GitHub analiza el `Dockerfile` de forma **estática**: solo evalúa la imagen base declarada en `FROM`, sin ejecutar las instrucciones `RUN`. Por eso ese proyecto puede seguir mostrando las vulnerabilidades del sistema operativo aunque la imagen desplegada ya tenga los parches aplicados por `apk upgrade`. Para cuantificar el efecto real habría que escanear la **imagen construida y publicada en Docker Hub**, por ejemplo con *Snyk Container* (integración con Docker Hub) o *Docker Scout*. Queda como trabajo futuro: agregar ese escaneo como un paso del job `docker`, para que el pipeline falle si la imagen contiene vulnerabilidades críticas.
 
 #### 8.5. Insignia de Snyk
 
@@ -1225,7 +1253,21 @@ Con esto, el README reúne el estado de todas las herramientas integradas: GitHu
 
 ## 5. Conclusiones
 
-<!-- Se completa al final -->
+1. **La automatización convierte la calidad en una condición, no en una intención.** El pipeline `tests → sonar → build → docker → deploy` hace que ningún cambio llegue a producción sin pasar por las pruebas, el análisis estático y la construcción del artefacto. Cada etapa depende de la anterior (`needs`), así que un fallo detiene la cadena. Esa garantía se repitió en los tres *pull requests* del laboratorio sin ninguna intervención manual: cada *merge* a `main` terminó, en pocos minutos, en una nueva versión desplegada en Render.
+
+2. **Las pruebas deben ser portables para que la integración continua funcione.** El primer obstáculo no fue el pipeline, sino que la única prueba heredada del Laboratorio 1 dependía de un MySQL local. Separar la configuración de pruebas (H2 en memoria) y externalizar la configuración de ejecución en variables de entorno fue lo que permitió que **el mismo artefacto** se ejecute igual en local, en GitHub Actions y en la nube.
+
+3. **La cobertura de código es también una herramienta de diagnóstico.** Además de llevar la cobertura del 0 % al 96–98 %, las pruebas escritas para JaCoCo revelaron un **defecto real de lógica de negocio**: las validaciones de saldo de `updateTransactionById` estaban invertidas y podían dejar cuentas en negativo. Esas dos ramas eran imposibles de cubrir, y eso fue lo que delató el error. Este laboratorio mostró además dos detalles de configuración que pueden falsear la métrica: un `argLine` fijo en Surefire que desactivaba el agente de JaCoCo, y el código generado por Lombok que distorsionaba la cobertura de ramas.
+
+4. **El análisis estático detecta problemas que las pruebas no ven.** SonarCloud encontró 17 *issues* en el primer análisis (inyección por campo, literales duplicados, un paquete mal nombrado) y, más adelante, una vulnerabilidad en el propio pipeline: acciones de terceros referenciadas por etiquetas móviles en lugar de SHA inmutables. No todo hallazgo implica cambiar el código. La alerta sobre CSRF se analizó y se justificó como no aplicable a una API REST *stateless* con HTTP Basic, lo que muestra que estas herramientas apoyan el criterio del desarrollador, pero no lo reemplazan.
+
+5. **La mayor parte del riesgo de seguridad está en el código de terceros.** Snyk reportó inicialmente 117 vulnerabilidades, y ninguna estaba en el código escrito para el proyecto: todas venían de dependencias transitivas (Tomcat, Hibernate, Jackson) y de la imagen base del contenedor. Subir parches dentro de la misma línea menor y cambiar a una imagen Alpine eliminó **todas las vulnerabilidades críticas** y redujo el total en un 68 %. Lo que quedó sin solución publicada se documentó como un riesgo aceptado y monitoreado. En la práctica, la seguridad de las dependencias es un proceso continuo, no una tarea que se termina.
+
+6. **Trunk-Based Development necesita compuertas automáticas para ser seguro.** El esquema `dev → pull request → main` permitió validar cada cambio dos veces: en la rama de integración y sobre el resultado de la fusión. La **protección de rama**, que exige *pull request* y checks en verde, convirtió el pipeline en una compuerta obligatoria. Con un solo desarrollador, GitHub Actions y SonarCloud cumplieron el papel de revisor automático. Restringir `docker` y `deploy` a `main` garantizó que solo se desplegara código ya integrado y validado.
+
+7. **Desplegar en la nube expone problemas que no aparecen en local.** El proxy HTTPS de Render (resuelto con `forward-headers-strategy`), el límite de conexiones del plan gratuito de Aiven, la restricción `sql_require_primary_key`, la memoria limitada del contenedor y un error de configuración en la URL JDBC son ejemplos de diferencias entre entornos. Contenerizar la aplicación y externalizar la configuración redujo esas diferencias. La lección práctica fue diagnosticar leyendo el log desde la primera advertencia, no desde el último `Caused by`.
+
+8. **CI/CD es una práctica de arquitectura, no solo de herramientas.** Decisiones del Laboratorio 1 —la arquitectura en capas, los DTOs, el manejo centralizado de excepciones, la seguridad declarativa— facilitaron construir este pipeline. A su vez, el pipeline obligó a mejorar el diseño: inyección por constructor, configuración externalizada, una imagen de ejecución mínima con un usuario sin privilegios y un artefacto inmutable que se promueve sin recompilar. Un sistema bien estructurado es más fácil de automatizar, y la automatización protege esa estructura en el tiempo.
 
 ---
 

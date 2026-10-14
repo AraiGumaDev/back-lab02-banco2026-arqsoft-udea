@@ -19,6 +19,9 @@ public class TransactionService {
     private static final String SENDER_NOT_FOUND = "Sender Account Number not found";
     private static final String RECEIVER_NOT_FOUND = "Receiver Account Number not found";
     private static final String TRANSACTION_NOT_FOUND = "Transaction not found";
+    private static final String SENDER_BALANCE_NOT_ENOUGH = "Sender Balance not enough";
+    private static final String RECEIVER_BALANCE_NOT_ENOUGH = "Receiver Balance not enough";
+    private static final String INVALID_AMOUNT = "Amount must be greater than zero";
     // Zona horaria explícita: el servidor en la nube corre en UTC
     private static final ZoneId ZONE = ZoneId.of("America/Bogota");
 
@@ -39,6 +42,7 @@ public class TransactionService {
                 transactionDTO.getReceiverAccountNumber()==null){
             throw new IllegalArgumentException("Sender Account Number or Receiver Account Number cannot be null");
         }
+        validateAmount(transactionDTO.getAmount());
 //Buscar los clientes por numero de cuenta
         Customer sender =
                 customerRepository.findByAccountNumber(transactionDTO.getSenderAccountNumber())
@@ -48,7 +52,7 @@ public class TransactionService {
                                         .orElseThrow(()-> new IllegalArgumentException(RECEIVER_NOT_FOUND));
 //Validar que el remitente tenga saldo suficiente
         if(sender.getBalance() < transactionDTO.getAmount()){
-            throw new IllegalArgumentException("Sender Balance not enough");
+            throw new IllegalArgumentException(SENDER_BALANCE_NOT_ENOUGH);
         }
 //realiza la transferencia
         sender.setBalance(sender.getBalance() - transactionDTO.getAmount());
@@ -69,7 +73,15 @@ public class TransactionService {
         savedTransaction.setSenderAccountNumber(transaction.getSenderAccountNumber());
         savedTransaction.setReceiverAccountNumber(transaction.getReceiverAccountNumber());
         savedTransaction.setAmount(transaction.getAmount());
+        savedTransaction.setTimestamp(transaction.getTimestamp());
         return savedTransaction;
+    }
+
+    // El monto de una transferencia debe existir y ser positivo
+    private void validateAmount(Double amount) {
+        if (amount == null || amount <= 0) {
+            throw new IllegalArgumentException(INVALID_AMOUNT);
+        }
     }
     public List<TransactionDTO> getTransactionsForAccount(String accountNumber) {
         List<Transaction> transactions =
@@ -96,6 +108,7 @@ public class TransactionService {
     }
 
     public TransactionDTO updateTransactionById(Long id, TransactionDTO transactionDTO) {
+        validateAmount(transactionDTO.getAmount());
         Transaction transaction = transactionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(TRANSACTION_NOT_FOUND));
         Customer sender =
@@ -112,23 +125,23 @@ public class TransactionService {
             throw new IllegalArgumentException("The receiver's account does not match");
         }
 
-        if(transactionDTO.getAmount() - transaction.getAmount() < 0){
-
-            //Validar que el remitente tenga saldo suficiente
-            if(sender.getBalance() < (transactionDTO.getAmount() - transaction.getAmount())){
-                throw new IllegalArgumentException("Sender Balance not enough");
+        // Diferencia entre el monto nuevo y el original
+        double difference = transactionDTO.getAmount() - transaction.getAmount();
+        if (difference > 0) {
+            //El monto aumenta: el remitente debe tener saldo para cubrir la diferencia
+            if (sender.getBalance() < difference) {
+                throw new IllegalArgumentException(SENDER_BALANCE_NOT_ENOUGH);
             }
-            //realiza la transferencia
-            sender.setBalance(sender.getBalance() - (transactionDTO.getAmount() - transaction.getAmount()));
-            receiver.setBalance(receiver.getBalance() + (transactionDTO.getAmount() - transaction.getAmount()));
-        } else {
-            //Validar que sí se le pueda descontar el saldo al receiver
-            if(receiver.getBalance() < (transaction.getAmount() - transactionDTO.getAmount())){
-                throw new IllegalArgumentException("Receiver Balance not enough");
+            sender.setBalance(sender.getBalance() - difference);
+            receiver.setBalance(receiver.getBalance() + difference);
+        } else if (difference < 0) {
+            //El monto disminuye: el destinatario debe poder devolver la diferencia
+            double refund = -difference;
+            if (receiver.getBalance() < refund) {
+                throw new IllegalArgumentException(RECEIVER_BALANCE_NOT_ENOUGH);
             }
-            //realiza la transferencia
-            receiver.setBalance(receiver.getBalance() - (transaction.getAmount() - transactionDTO.getAmount()));
-            sender.setBalance(sender.getBalance() + (transaction.getAmount() - transactionDTO.getAmount()));
+            receiver.setBalance(receiver.getBalance() - refund);
+            sender.setBalance(sender.getBalance() + refund);
         }
         //Guardar los cambios en las cuentas
         customerRepository.save(sender);
@@ -154,7 +167,7 @@ public class TransactionService {
                         .orElseThrow(()-> new ResourceNotFoundException(RECEIVER_NOT_FOUND));
 
         if(receiver.getBalance() < transaction.getAmount()){
-            throw new IllegalArgumentException("Receiver Balance not enough");
+            throw new IllegalArgumentException(RECEIVER_BALANCE_NOT_ENOUGH);
         }
 
         sender.setBalance(sender.getBalance() + transaction.getAmount());

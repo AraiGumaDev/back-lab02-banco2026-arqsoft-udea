@@ -297,4 +297,89 @@ class TransactionServiceTest {
         assertThrows(IllegalArgumentException.class, () -> transactionService.deleteTransactionById(1L));
         verify(transactionRepository, never()).deleteById(any());
     }
+
+    // ---------- validaciones agregadas en la rama dev ----------
+
+    @Test
+    void transferMoneyReturnsTimestamp() {
+        givenAccounts(customer("111", 100.0), customer("222", 0.0));
+        when(transactionRepository.save(any(Transaction.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        TransactionDTO result = transactionService.transferMoney(request("111", "222", 10.0));
+
+        assertNotNull(result.getTimestamp());
+    }
+
+    @Test
+    void transferMoneyRejectsNullAmount() {
+        TransactionDTO dto = request("111", "222", null);
+
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> transactionService.transferMoney(dto));
+        assertEquals("Amount must be greater than zero", ex.getMessage());
+        verifyNoInteractions(customerRepository, transactionRepository);
+    }
+
+    @Test
+    void transferMoneyRejectsNonPositiveAmount() {
+        TransactionDTO zero = request("111", "222", 0.0);
+        TransactionDTO negative = request("111", "222", -50.0);
+
+        assertThrows(IllegalArgumentException.class, () -> transactionService.transferMoney(zero));
+        assertThrows(IllegalArgumentException.class, () -> transactionService.transferMoney(negative));
+        verifyNoInteractions(customerRepository, transactionRepository);
+    }
+
+    @Test
+    void updateTransactionRejectsNonPositiveAmount() {
+        TransactionDTO dto = request("111", "222", -10.0);
+
+        assertThrows(IllegalArgumentException.class, () -> transactionService.updateTransactionById(1L, dto));
+        verifyNoInteractions(transactionRepository);
+    }
+
+    @Test
+    void updateTransactionRejectsIncreaseWhenSenderHasNoFunds() {
+        Customer sender = customer("111", 10.0);
+        Customer receiver = customer("222", 50.0);
+        givenAccounts(sender, receiver);
+        when(transactionRepository.findById(1L)).thenReturn(Optional.of(transaction(1L, "111", "222", 50.0)));
+        TransactionDTO dto = request("111", "222", 100.0);
+
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> transactionService.updateTransactionById(1L, dto));
+        assertEquals("Sender Balance not enough", ex.getMessage());
+        assertEquals(10.0, sender.getBalance());
+        assertEquals(50.0, receiver.getBalance());
+        verify(customerRepository, never()).save(any());
+    }
+
+    @Test
+    void updateTransactionRejectsDecreaseWhenReceiverCannotRefund() {
+        Customer sender = customer("111", 0.0);
+        Customer receiver = customer("222", 10.0);
+        givenAccounts(sender, receiver);
+        when(transactionRepository.findById(1L)).thenReturn(Optional.of(transaction(1L, "111", "222", 100.0)));
+        TransactionDTO dto = request("111", "222", 50.0);
+
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> transactionService.updateTransactionById(1L, dto));
+        assertEquals("Receiver Balance not enough", ex.getMessage());
+        assertEquals(0.0, sender.getBalance());
+        assertEquals(10.0, receiver.getBalance());
+        verify(customerRepository, never()).save(any());
+    }
+
+    @Test
+    void updateTransactionWithSameAmountKeepsBalances() {
+        Customer sender = customer("111", 70.0);
+        Customer receiver = customer("222", 30.0);
+        givenAccounts(sender, receiver);
+        when(transactionRepository.findById(1L)).thenReturn(Optional.of(transaction(1L, "111", "222", 30.0)));
+
+        transactionService.updateTransactionById(1L, request("111", "222", 30.0));
+
+        assertEquals(70.0, sender.getBalance());
+        assertEquals(30.0, receiver.getBalance());
+    }
 }

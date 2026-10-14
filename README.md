@@ -63,4 +63,9 @@ docker run -p 8080:8080 -e APP_DB_URL="jdbc:mysql://host.docker.internal:3306/ba
 ```
 
 ### Despliegue en la nube
-_Pendiente._
+La API se despliega automáticamente en **Render** (con base de datos **Aiven MySQL**) en cada cambio que llega a `main`:
+
+* 🌐 **API:** https://back-lab02-banco2026-arqsoft-udea-latest.onrender.com
+* 📖 **Swagger UI:** https://back-lab02-banco2026-arqsoft-udea-latest.onrender.com/swagger-ui.html
+
+> La instancia gratuita de Render se suspende tras 15 minutos de inactividad; la primera petición puede tardar unos segundos mientras arranca.

@@ -173,6 +173,49 @@ class BancoApiIntegrationTest {
     }
 
     @Test
+    void transferWithNonPositiveAmountIsBadRequest() throws Exception {
+        createCustomer("TRX-005", 100.0);
+        createCustomer("TRX-006", 0.0);
+
+        mockMvc.perform(post("/api/transactions").with(ADMIN)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(transactionJson("TRX-005", "TRX-006", -20.0)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail").value("Amount must be greater than zero"));
+    }
+
+    @Test
+    void transferResponseIncludesTimestamp() throws Exception {
+        createCustomer("TRX-007", 100.0);
+        createCustomer("TRX-008", 0.0);
+
+        mockMvc.perform(post("/api/transactions").with(ADMIN)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(transactionJson("TRX-007", "TRX-008", 10.0)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.timestamp").exists());
+    }
+
+    @Test
+    void updateTransactionAboveSenderBalanceIsBadRequest() throws Exception {
+        createCustomer("TRX-009", 50.0);
+        createCustomer("TRX-010", 0.0);
+        String body = mockMvc.perform(post("/api/transactions").with(ADMIN)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(transactionJson("TRX-009", "TRX-010", 40.0)))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        long trxId = ((Number) JsonPath.read(body, "$.id")).longValue();
+
+        // El remitente quedó con 10: no puede cubrir un aumento de 40 a 100 (diferencia de 60)
+        mockMvc.perform(put("/api/transactions/{id}", trxId).with(ADMIN)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(transactionJson("TRX-009", "TRX-010", 100.0)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail").value("Sender Balance not enough"));
+    }
+
+    @Test
     void unknownTransactionIsNotFound() throws Exception {
         mockMvc.perform(get("/api/transactions/{id}", 9999).with(USER))
                 .andExpect(status().isNotFound());

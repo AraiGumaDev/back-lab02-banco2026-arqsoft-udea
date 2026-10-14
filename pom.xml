@@ -32,6 +32,11 @@
 		<lombok.version>1.18.30</lombok.version>
 		<lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
 		<jacoco.version>0.8.14</jacoco.version>
+		<!-- Parches de seguridad (Snyk) -->
+		<tomcat.version>11.0.27</tomcat.version>
+		<hibernate.version>7.4.13.Final</hibernate.version>
+		<jackson-bom.version>3.1.7</jackson-bom.version>
+		<jackson-2-bom.version>2.21.7</jackson-2-bom.version>
 		<argLine></argLine>
 		<sonar.projectKey>araigumadevprojects_lab02-banco2026-arqsoft-udea</sonar.projectKey>
 		<sonar.organization>araigumadevprojects</sonar.organization>

@@ -1,9 +1,11 @@
-# Imagen de ejecución: solo el JRE 17 (más liviana que un JDK completo)
-FROM eclipse-temurin:17-jre-jammy
+# Imagen de ejecución: solo el JRE 17 sobre Alpine Linux.
+# Se cambió desde eclipse-temurin:17-jre-jammy (Ubuntu) porque Snyk reportó 91 vulnerabilidades
+# en los paquetes del sistema operativo; Alpine incluye muchos menos paquetes (menor superficie de ataque).
+FROM eclipse-temurin:17-jre-alpine
 
 WORKDIR /app
 
-RUN groupadd --system spring && useradd --system --gid spring spring
+RUN addgroup -S spring && adduser -S spring -G spring
 
 # Copia el artefacto generado por el job "build" del pipeline (mvn package -> target/banco2026.jar)
 COPY target/banco2026.jar app.jar

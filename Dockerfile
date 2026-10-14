@@ -5,6 +5,9 @@ FROM eclipse-temurin:17-jre-alpine
 
 WORKDIR /app
 
+# Aplica los parches de seguridad publicados en Alpine después de construida la imagen base
+RUN apk upgrade --no-cache
+
 RUN addgroup -S spring && adduser -S spring -G spring
 
 # Copia el artefacto generado por el job "build" del pipeline (mvn package -> target/banco2026.jar)

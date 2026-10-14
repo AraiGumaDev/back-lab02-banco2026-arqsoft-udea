@@ -5,7 +5,7 @@
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=araigumadevprojects_lab02-banco2026-arqsoft-udea&metric=coverage)](https://sonarcloud.io/summary/new_code?id=araigumadevprojects_lab02-banco2026-arqsoft-udea)
 [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=araigumadevprojects_lab02-banco2026-arqsoft-udea&metric=bugs)](https://sonarcloud.io/summary/new_code?id=araigumadevprojects_lab02-banco2026-arqsoft-udea)
 [![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=araigumadevprojects_lab02-banco2026-arqsoft-udea&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=araigumadevprojects_lab02-banco2026-arqsoft-udea)
-<!-- BADGES: se agregan a medida que se integra cada plataforma -->
+[![Known Vulnerabilities](https://snyk.io/test/github/AraiGumaDev/back-lab02-banco2026-arqsoft-udea/badge.svg)](https://snyk.io/test/github/AraiGumaDev/back-lab02-banco2026-arqsoft-udea)
 
 API REST bancaria construida con **Spring Boot** sobre una arquitectura en capas (Laboratorio 1), integrada en el Laboratorio 2 a un pipeline de **Integración y Despliegue Continuo (CI/CD)**.
 
